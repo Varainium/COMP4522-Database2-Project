@@ -17,7 +17,7 @@ try {
             <form method='GET' action='" . $_SERVER['REQUEST_URI'] . "'>";
         $aside .= "<ul>";
         foreach ($allStaff as $row) {
-            $aside .= "<li><button type='submit' name='ref' value='" . htmlspecialchars($row['staff_id']) . "'>" . htmlspecialchars($row['first_name']). htmlspecialchars($row['last_name']) . "</button></li>";
+            $aside .= "<li><button type='submit' name='ref' value='" . htmlspecialchars($row['staff_id']) . "'>" . htmlspecialchars($row['first_name']). " ". htmlspecialchars($row['last_name']) . "</button></li>";
         }
         $aside .= "</ul>";
         $aside .= "</form>";
@@ -29,10 +29,9 @@ try {
             $staff = $staffGateway->getStaff($_GET['ref']);
 
             // Grab element values and set them in variables
-            $staffName = htmlspecialchars($staff['first_name'] + ' ' + $staff['last_name']);
+            $staffName = htmlspecialchars($staff['first_name'] . " " . $staff['last_name']);
             $role = htmlspecialchars($staff['role']);
             $phone = htmlspecialchars($staff['phone']);
-            $email = htmlspecialchars($staff['email']);
 
             // Output the staff information
             $main .=
@@ -42,7 +41,6 @@ try {
                     <div class='grid'>
                         <p><strong>Role: </strong>$role</p>
                         <p><strong>Phone: </strong>$phone</p>
-                        <p><strong>Email: </strong>$email</p>
                     </div>
                 </section>";
         }
