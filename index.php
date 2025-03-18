@@ -30,7 +30,7 @@ try {
 
             // Grab element values and set them in variables
             $staffName = htmlspecialchars($staff['first_name'] . " " . $staff['last_name']);
-            $role = htmlspecialchars($staff['role']);
+            $department = htmlspecialchars($staff['department']);
             $phone = htmlspecialchars($staff['phone']);
 
             // Output the staff information
@@ -39,7 +39,7 @@ try {
                 <section class='info'>
                     <h2>$staffName</h2>
                     <div class='grid'>
-                        <p><strong>Role: </strong>$role</p>
+                        <p><strong>Department: </strong>$department</p>
                         <p><strong>Phone: </strong>$phone</p>
                     </div>
                 </section>";
