@@ -113,8 +113,8 @@ class DailyMasterScheduleDB
     private $pdo;
     private static $baseSQL =
     "SELECT dms.date, dms.staff_id, s.first_name, s.last_name, dms.shift_start_time, dms.shift_end_time, dms.appointment_slots, dms.walk_in_availability
-       FROM daily_master_schedule AS dms
-       JOIN staff AS s ON dms.staff_id = s.staff_id";
+        FROM daily_master_schedule AS dms
+        JOIN staff AS s ON dms.staff_id = s.staff_id";
     public function __construct($connection)
     {
         $this->pdo = $connection;
