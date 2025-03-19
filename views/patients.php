@@ -3,6 +3,11 @@
 require_once "../includes/config.inc.php";
 require_once "../includes/db-classes.inc.php";
 
+$conn = DatabaseHelper::createConnection(DBCONNSTRING);
+// Instantiate the PatientDB class using the established connection
+$patientDB = new PatientDB($conn);
+
+$patients = $patientDB->getAll();
 ?>
 
 <!DOCTYPE html>
@@ -69,33 +74,33 @@ require_once "../includes/db-classes.inc.php";
                     <th>Insurance</th>
                     <th>Actions</th>
                 </tr>
-                <?php foreach ($patients as $patient): ?>
-                <tr>
-                    <td><?= htmlspecialchars($patient['patient_id']) ?></td>
-                    <td><?= htmlspecialchars($patient['first_name']) ?></td>
-                    <td><?= htmlspecialchars($patient['last_name']) ?></td>
-                    <td><?= htmlspecialchars($patient['insurance_provider']) ?></td>
-                    <td>
-                        <!-- Remove Button -->
-                        <form method="POST" style="display:inline;">
-                            <input type="hidden" name="patient_id" value="<?= $patient['patient_id'] ?>">
-                            <button type="submit" name="delete_patient" onclick="return confirm('Are you sure?');">Remove</button>
-                        </form>
+                <?php foreach ($patients as $patient):?>
+                    <tr>
+                        <td><?= htmlspecialchars($patient['patient_id']) ?></td>
+                        <td><?= htmlspecialchars($patient['first_name']) ?></td>
+                        <td><?= htmlspecialchars($patient['last_name']) ?></td>
+                        <td><?= htmlspecialchars($patient['insurance_provider']) ?></td>
+                        <td>
+                            <!-- Remove Button -->
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="patient_id" value="<?= $patient['patient_id'] ?>">
+                                <button type="submit" name="delete_patient" onclick="return confirm('Are you sure?');">Remove</button>
+                            </form>
 
-                        <!-- Update Button (Opens Dropdown) -->
-                        <form method="POST" style="display:inline;">
-                            <input type="hidden" name="patient_id" value="<?= $patient['patient_id'] ?>">
-                            <select name="insurance_provider">
-                                <?php foreach ($insuranceProviders as $provider): ?>
-                                    <option value="<?= htmlspecialchars($provider) ?>" <?= $patient['insurance_provider'] == $provider ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($provider) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <button type="submit" name="update_patient">Update</button>
-                        </form>
-                    </td>
-                </tr>
+                            <!-- Update Button (Opens Dropdown) -->
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="patient_id" value="<?= $patient['patient_id'] ?>">
+                                <select name="insurance_provider">
+                                    <?php foreach ($insuranceProviders as $provider): ?>
+                                        <option value="<?= htmlspecialchars($provider) ?>" <?= $patient['insurance_provider'] == $provider ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($provider) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="submit" name="update_patient">Update</button>
+                            </form>
+                        </td>
+                    </tr>
                 <?php endforeach; ?>
             </table>
         </section>
