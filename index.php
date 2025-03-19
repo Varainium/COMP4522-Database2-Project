@@ -71,8 +71,8 @@ try {
             <ul>
                 <li><a href="index.php">Home</a></li>
                 <li><a href="schedule.php">Schedules</a></li>
-                <li><a href="reports.php">Schedules</a></li>
-                <li><a href="staff.php">Schedules</a></li>
+                <li><a href="reports.php">Reports</a></li>
+                <li><a href="staff.php">Staff</a></li>
                 <!-- <li><a href="patients.html">Patients</a></li>
                 <li><a href="billing.html">Billing</a></li>
                 <li><a href="prescriptions.html">Prescriptions</a></li> -->
