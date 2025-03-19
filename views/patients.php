@@ -7,7 +7,32 @@ $conn = DatabaseHelper::createConnection(DBCONNSTRING);
 // Instantiate the PatientDB class using the established connection
 $patientDB = new PatientDB($conn);
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['delete_patient'])) {
+        $patientID = $_POST['patient_id'];
+        $patientDB->deletePatient($patientID);
+    } elseif (isset($_POST['update_patient'])) {
+        $patientID = $_POST['patient_id'];
+        $insuranceProvider = $_POST['insurance_provider'];
+        $patientDB->updatePatientInsurance($patientID, $insuranceProvider);
+    } elseif (isset($_POST['add_patient'])) {
+        $firstName = $_POST['first_name'];
+        $lastName = $_POST['last_name'];
+        $insuranceProvider = $_POST['insurance_provider'];
+        $patientDB->addPatient($firstName, $lastName, $insuranceProvider);
+    }
+}
+
 $patients = $patientDB->getAll();
+
+// Extract unique insurance providers and filter out empty values
+$insuranceProviders = array_filter(array_unique(array_column($patients, 'insurance_provider')), function($provider) {
+    return !empty($provider);
+});
+
+if (!in_array('No Provider', $insuranceProviders)) {
+    $insuranceProviders[] = 'No Provider';
+}
 ?>
 
 <!DOCTYPE html>
@@ -74,12 +99,12 @@ $patients = $patientDB->getAll();
                     <th>Insurance</th>
                     <th>Actions</th>
                 </tr>
-                <?php foreach ($patients as $patient):?>
+                <?php foreach ($patients as $patient): ?>
                     <tr>
                         <td><?= htmlspecialchars($patient['patient_id']) ?></td>
                         <td><?= htmlspecialchars($patient['first_name']) ?></td>
                         <td><?= htmlspecialchars($patient['last_name']) ?></td>
-                        <td><?= htmlspecialchars($patient['insurance_provider']) ?></td>
+                        <td><?= htmlspecialchars(!empty($patient['insurance_provider']) ? $patient['insurance_provider'] : 'No Provider') ?></td>
                         <td>
                             <!-- Remove Button -->
                             <form method="POST" style="display:inline;">
