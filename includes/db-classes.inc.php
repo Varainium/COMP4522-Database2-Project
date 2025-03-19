@@ -108,3 +108,27 @@ class PatientDB
         return $statement;
     }
 }
+class DailyMasterScheduleDB
+{
+    private $pdo;
+    private static $baseSQL =
+    "SELECT dms.date, dms.staff_id, s.first_name, s.last_name, dms.shift_start_time, dms.shift_end_time, dms.appointment_slots, dms.walk_in_availability
+       FROM daily_master_schedule AS dms
+       JOIN staff AS s ON dms.staff_id = s.staff_id";
+    public function __construct($connection)
+    {
+        $this->pdo = $connection;
+    }
+    public function getAll()
+    {
+        $sql = self::$baseSQL;
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
+        return $statement->fetchAll();
+    }
+    public function getDailyMasterSchedule($id)
+    {
+        $sql = self::$baseSQL . " WHERE date=?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($id));
+        return $statement->fetchAll();
+    }
+}

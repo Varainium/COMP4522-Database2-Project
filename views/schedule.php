@@ -4,54 +4,71 @@ require_once "../includes/config.inc.php";
 require_once "../includes/db-classes.inc.php";
 
 try {
-    // Connect and retrieve data from StaffDB
+    // Connect and retrieve data from DailyMasterScheduleDB
     $conn = DatabaseHelper::createConnection(DBCONNSTRING);
-    $staffGateway = new StaffDB($conn);
+    $dmsGateway = new DailyMasterScheduleDB($conn);
+
+    // Get all schedules
+    $allSchedules = $dmsGateway->getAll();
+
+    // Check if $allSchedules is valid before using it
+    if (!is_array($allSchedules) || empty($allSchedules)) {
+        throw new Exception("No schedules available in the database.");
+    }
 
     // Markup for aside content
-    $allStaff = $staffGateway->getAll();
-    $aside = "";
-    if ($allStaff) {
-        $aside .= "<!-- All staff container -->
-            <h2>Select a Staff</h2>
-            <form method='GET' action='" . $_SERVER['REQUEST_URI'] . "'>";
-        $aside .= "<ul>";
-        foreach ($allStaff as $row) {
-            $aside .= "<li><button type='submit' name='ref' value='" . htmlspecialchars($row['staff_id']) . "'>" . htmlspecialchars($row['first_name']). " ". htmlspecialchars($row['last_name']) . "</button></li>";
+    $aside = "<h2>Select a Schedule</h2><form method='GET' action='" . $_SERVER['PHP_SELF'] . "'>";
+    $aside .= "<ul>";
+
+    // Store unique dates
+    $dates = [];
+    foreach ($allSchedules as $row) {
+        if (!in_array($row['date'], $dates)) {
+            $dates[] = $row['date'];
+            $aside .= "<li><button type='submit' name='ref' value='" . htmlspecialchars($row['date']) . "'>" . htmlspecialchars($row['date']) . "</button></li>";
         }
-        $aside .= "</ul>";
-        $aside .= "</form>";
+    }
+    $aside .= "</ul></form>";
 
-        // Markup for main content
-        $main = "";
-        // Retrieve staff details
-        if (isset($_GET['ref']) && !empty($_GET['ref'])) {
-            $staff = $staffGateway->getStaff($_GET['ref']);
+    // Markup for main content
+    $main = "";
+    if (isset($_GET['ref']) && !empty($_GET['ref'])) {
+        $selectedDate = $_GET['ref'];
+        $schedules = $dmsGateway->getDailyMasterSchedule($selectedDate);
 
-            // Grab element values and set them in variables
-            $staffName = htmlspecialchars($staff['first_name'] . " " . $staff['last_name']);
-            $department = htmlspecialchars($staff['department']);
-            $phone = htmlspecialchars($staff['phone']);
+        if (!empty($schedules) && is_array($schedules)) {
+            $main .= "<section class='info'>
+                        <h2>Schedule Details for " . htmlspecialchars($selectedDate) . "</h2>
+                        <div class='grid'>";
 
-            // Output the staff information
-            $main .=
-                "<!-- Staff information -->
-                <section class='info'>
-                    <h2>$staffName</h2>
-                    <div class='grid'>
-                        <p><strong>Department: </strong>$department</p>
-                        <p><strong>Phone: </strong>$phone</p>
-                    </div>
-                </section>";
+            foreach ($schedules as $schedule) {
+                if (!is_array($schedule)) continue; // ✅ Ensures $schedule is an array before accessing keys
+
+                $staff_id = htmlspecialchars($schedule['staff_id'] ?? "N/A");
+                $first_name = htmlspecialchars($schedule['first_name'] ?? "N/A");
+                $last_name = htmlspecialchars($schedule['last_name'] ?? "N/A");
+                $shift_start_time = htmlspecialchars($schedule['shift_start_time'] ?? "N/A");
+                $shift_end_time = htmlspecialchars($schedule['shift_end_time'] ?? "N/A");
+                $appointment_slots = htmlspecialchars($schedule['appointment_slots'] ?? "0");
+                $walk_in_availability = htmlspecialchars($schedule['walk_in_availability'] ?? "N/A");
+
+                $main .= "<div class='schedule'>
+                            <p><strong>Staff ID: </strong>$staff_id</p>
+                            <p><strong>Staff Name: </strong>$first_name $last_name</p>
+                            <p><strong>Shift Start Time: </strong>$shift_start_time</p>
+                            <p><strong>Shift End Time: </strong>$shift_end_time</p>
+                            <p><strong>Appointment Slots: </strong>$appointment_slots</p>
+                            <p><strong>Walk-in Availability: </strong>$walk_in_availability</p>
+                          </div>";
+            }
+            $main .= "</div></section>";
+        } else {
+            $main .= "<p style='text-align:center;'>No schedules found for this date.</p>";
         }
-    } else {
-        $aside .= "No data to retrieve. Please reconfigure connection to database.";
-        $main .= "No data to retrieve. Please reconfigure connection to database.";
     }
 } catch (Exception $e) {
     die($e->getMessage());
 }
-
 ?>
 
 <!DOCTYPE html>
