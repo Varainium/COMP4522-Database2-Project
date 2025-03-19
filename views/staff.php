@@ -1,7 +1,7 @@
 <?php
 // Required to connect to the wellness clinic database
-require_once "includes/config.inc.php";
-require_once "includes/db-classes.inc.php";
+require_once "../includes/config.inc.php";
+require_once "../includes/db-classes.inc.php";
 
 try {
     // Connect and retrieve data from StaffDB
@@ -69,8 +69,8 @@ try {
         <h1>Wellness Clinic</h1>
         <nav>
             <ul>
-                <li><a href="dashboard.html">Dashboard</a></li>
-                <li><a href="schedule.html">Schedules</a></li>
+                <li><a href="../index.php">Dashboard</a></li>
+                <li><a href="schedule.php">Schedules</a></li>
                 <li><a href="patients.html">Patients</a></li>
                 <li><a href="billing.html">Billing</a></li>
                 <li><a href="prescriptions.html">Prescriptions</a></li>
