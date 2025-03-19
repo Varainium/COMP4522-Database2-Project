@@ -7,14 +7,12 @@ require_once "../includes/db-classes.inc.php";
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nursing Clinic</title>
+    <title>Patient Management</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <header>
         <h1>Wellness Clinic</h1>
@@ -27,18 +25,84 @@ require_once "../includes/db-classes.inc.php";
             </ul>
         </nav>
     </header>
+
     <main>
-        <h2>Welcome to the Wellness Clinic Project</h2>
+        <h2>Manage Patients</h2>
+
+        <!-- Error Message Display -->
+        <?php if (!empty($errorMsg)): ?>
+            <div style="color: red; font-weight: bold;">
+                <?= htmlspecialchars($errorMsg) ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Add Patient Form -->
+        <section>
+            <h3>Add Patient</h3>
+            <form method="POST">
+                <label>First Name:</label>
+                <input type="text" name="first_name" required>
+                
+                <label>Last Name:</label>
+                <input type="text" name="last_name" required>
+                
+                <label>Insurance Provider:</label>
+                <select name="insurance_provider" required>
+                    <?php foreach ($insuranceProviders as $provider): ?>
+                        <option value="<?= htmlspecialchars($provider) ?>"><?= htmlspecialchars($provider) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                
+                <button type="submit" name="add_patient">Submit</button>
+                <button type="reset">Clear</button>
+            </form>
+        </section>
+
+        <!-- Patient List -->
+        <section>
+            <h3>List of Patients</h3>
+            <table border="1">
+                <tr>
+                    <th>ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Insurance</th>
+                    <th>Actions</th>
+                </tr>
+                <?php foreach ($patients as $patient): ?>
+                <tr>
+                    <td><?= htmlspecialchars($patient['patient_id']) ?></td>
+                    <td><?= htmlspecialchars($patient['first_name']) ?></td>
+                    <td><?= htmlspecialchars($patient['last_name']) ?></td>
+                    <td><?= htmlspecialchars($patient['insurance_provider']) ?></td>
+                    <td>
+                        <!-- Remove Button -->
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="patient_id" value="<?= $patient['patient_id'] ?>">
+                            <button type="submit" name="delete_patient" onclick="return confirm('Are you sure?');">Remove</button>
+                        </form>
+
+                        <!-- Update Button (Opens Dropdown) -->
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="patient_id" value="<?= $patient['patient_id'] ?>">
+                            <select name="insurance_provider">
+                                <?php foreach ($insuranceProviders as $provider): ?>
+                                    <option value="<?= htmlspecialchars($provider) ?>" <?= $patient['insurance_provider'] == $provider ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($provider) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button type="submit" name="update_patient">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+        </section>
     </main>
-    <aside>
-        <?php echo $aside; ?>
-    </aside>
-    <div class="main">
-        <?php echo $main; ?>
-    </div>
+
     <footer>
         <p>&copy; Wellness Clinic Project</p>
     </footer>
 </body>
-
 </html>
