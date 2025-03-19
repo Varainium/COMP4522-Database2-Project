@@ -63,3 +63,48 @@ class StaffDB
         return $statement->fetch();
     }
 }
+class PatientDB
+{
+    private $pdo;
+    private static $baseSQL =
+    "SELECT *
+                FROM patient";
+    public function __construct($connection)
+    {
+        $this->pdo = $connection;
+    }
+    public function getAll()
+    {
+        $sql = self::$baseSQL;
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
+        return $statement->fetchAll();
+    }
+    public function getPatient($id)
+    {
+        $sql = self::$baseSQL . " WHERE patient_id=?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($id));
+        return $statement->fetch();
+    }
+    public function addPatient($first_name, $last_name, $insurance_provider)
+    {
+        $sql = "INSERT INTO patient (first_name, last_name, insurance_provider)
+                VALUES (?, ?, ?)";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($first_name, $last_name, $insurance_provider));
+        return $statement;
+    }
+    public function updatePatient($id, $first_name, $last_name, $insurance_provider)
+    {
+        $sql = "UPDATE patient
+                SET first_name=?, last_name=?, insurance_provider=?
+                WHERE patient_id=?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($first_name, $last_name, $insurance_provider, $id));
+        return $statement;
+    }
+    public function deletePatient($id)
+    {
+        $sql = "DELETE FROM patient
+                WHERE patient_id=?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($id));
+        return $statement;
+    }
+}
