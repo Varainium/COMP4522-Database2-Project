@@ -69,9 +69,9 @@ try {
         <h1>Wellness Clinic</h1>
         <nav>
             <ul>
-                <li><a href="dashboard.html">Dashboard</a></li>
-                <li><a href="schedule.html">Schedules</a></li>
-                <li><a href="patients.html">Patients</a></li>
+                <li><a href="../index.php">Dashboard</a></li>
+                <li><a href="schedule.php">Schedules</a></li>
+                <li><a href="patients.php">Patients</a></li>
                 <li><a href="billing.html">Billing</a></li>
                 <li><a href="prescriptions.html">Prescriptions</a></li>
                 <li><a href="login.html">Logout</a></li>
