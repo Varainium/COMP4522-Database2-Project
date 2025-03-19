@@ -29,6 +29,7 @@ try {
             $staff = $staffGateway->getStaff($_GET['ref']);
 
             // Grab element values and set them in variables
+            $staff_id = htmlspecialchars($staff['staff_id']);
             $staffName = htmlspecialchars($staff['first_name'] . " " . $staff['last_name']);
             $department = htmlspecialchars($staff['department']);
             $phone = htmlspecialchars($staff['phone']);
@@ -39,6 +40,7 @@ try {
                 <section class='info'>
                     <h2>$staffName</h2>
                     <div class='grid'>
+                        <p><strong>Staff ID: </strong>$staff_id</p>
                         <p><strong>Department: </strong>$department</p>
                         <p><strong>Phone: </strong>$phone</p>
                     </div>
