@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $insuranceProvider = $_POST['insurance_provider'];
         $existingPatient = $patientDB->findPatient($firstName, $lastName, $insuranceProvider);
         if ($existingPatient) {
-            $errorMsg = "A patient with the same name and insurance provider already exists.";
+            $errorMsg = "A patient with the same name already exists.";
             
         } else {
             $patientDB->addPatient($firstName, $lastName, $insuranceProvider);

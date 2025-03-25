@@ -100,12 +100,12 @@ class PatientDB
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($insurance_provider, $id));
         return $statement;
     }
-    public function findPatient($first_name, $last_name, $insurance_provider) 
+    public function findPatient($first_name, $last_name) 
     {
         $sql = "SELECT *
                 FROM patient
-                WHERE first_name=? AND last_name=? AND insurance_provider=?";
-        $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($first_name, $last_name, $insurance_provider));
+                WHERE first_name=? AND last_name=?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($first_name, $last_name));
         return $statement->fetch();
     }
     public function deletePatient($id)
