@@ -12,37 +12,6 @@ try {
 
     $main = "";
 
-    // 📊 Monthly Activity Report Table
-    $main .= "<h2 style='text-align:center;'>Monthly Activity Report</h2>";
-    $main .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 90%;'>
-        <thead>
-            <tr>
-                <th>Month</th>
-                <th>Patient Visits</th>
-                <th>Deliveries</th>
-                <th>Lab Tests</th>
-                <th>Recoveries</th>
-                <th>Avg Visit Duration (min)</th>
-            </tr>
-        </thead><tbody>";
-
-    if (!empty($activityReport)) {
-        foreach ($activityReport as $row) {
-            $main .= "<tr>
-                <td>" . htmlspecialchars($row['month_year']) . "</td>
-                <td>" . $row['total_patient_visits'] . "</td>
-                <td>" . $row['total_deliveries'] . "</td>
-                <td>" . $row['total_lab_tests'] . "</td>
-                <td>" . $row['total_recoveries'] . "</td>
-                <td>" . ($row['avg_visit_duration'] ?? 'N/A') . "</td>
-            </tr>";
-        }
-    } else {
-        $main .= "<tr><td colspan='6' style='text-align:center;'>No activity data available.</td></tr>";
-    }
-
-    $main .= "</tbody></table>";
-
     // 💳 Patient Monthly Statement Table
     $main .= "<h2 style='text-align:center; margin-top: 40px;'>Patient Monthly Statement</h2>";
     $main .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 90%;'>
@@ -72,6 +41,37 @@ try {
         }
     } else {
         $main .= "<tr><td colspan='7' style='text-align:center;'>No statements available.</td></tr>";
+    }
+
+    $main .= "</tbody></table>";
+
+    // 📊 Monthly Activity Report Table
+    $main .= "<h2 style='text-align:center;'>Monthly Activity Report</h2>";
+    $main .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 90%;'>
+    <thead>
+        <tr>
+            <th>Month</th>
+            <th>Patient Visits</th>
+            <th>Deliveries</th>
+            <th>Lab Tests</th>
+            <th>Recoveries</th>
+            <th>Avg Visit Duration (min)</th>
+        </tr>
+    </thead><tbody>";
+
+    if (!empty($activityReport)) {
+        foreach ($activityReport as $row) {
+            $main .= "<tr>
+            <td>" . htmlspecialchars($row['month_year']) . "</td>
+            <td>" . $row['total_patient_visits'] . "</td>
+            <td>" . $row['total_deliveries'] . "</td>
+            <td>" . $row['total_lab_tests'] . "</td>
+            <td>" . $row['total_recoveries'] . "</td>
+            <td>" . ($row['avg_visit_duration'] ?? 'N/A') . "</td>
+        </tr>";
+        }
+    } else {
+        $main .= "<tr><td colspan='6' style='text-align:center;'>No activity data available.</td></tr>";
     }
 
     $main .= "</tbody></table>";
