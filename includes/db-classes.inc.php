@@ -92,13 +92,21 @@ class PatientDB
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($first_name, $last_name, $insurance_provider));
         return $statement;
     }
-    public function updatePatient($id, $first_name, $last_name, $insurance_provider)
+    public function updatePatient($id, $insurance_provider)
     {
         $sql = "UPDATE patient
-                SET first_name=?, last_name=?, insurance_provider=?
+                SET insurance_provider=?
                 WHERE patient_id=?";
-        $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($first_name, $last_name, $insurance_provider, $id));
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($insurance_provider, $id));
         return $statement;
+    }
+    public function findPatient($first_name, $last_name, $insurance_provider) 
+    {
+        $sql = "SELECT *
+                FROM patient
+                WHERE first_name=? AND last_name=? AND insurance_provider=?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($first_name, $last_name, $insurance_provider));
+        return $statement->fetch();
     }
     public function deletePatient($id)
     {

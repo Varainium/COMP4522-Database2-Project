@@ -12,14 +12,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $patientID = $_POST['patient_id'];
         $patientDB->deletePatient($patientID);
     } elseif (isset($_POST['update_patient'])) {
+        // $firstName = $_POST['first_name'];
+        // $lastName = $_POST['last_name'];
         $patientID = $_POST['patient_id'];
         $insuranceProvider = $_POST['insurance_provider'];
-        $patientDB->updatePatientInsurance($patientID, $insuranceProvider);
+        $patientDB->updatePatient($patientID, $insuranceProvider);
     } elseif (isset($_POST['add_patient'])) {
         $firstName = $_POST['first_name'];
         $lastName = $_POST['last_name'];
         $insuranceProvider = $_POST['insurance_provider'];
-        $patientDB->addPatient($firstName, $lastName, $insuranceProvider);
+        $existingPatient = $patientDB->findPatient($firstName, $lastName, $insuranceProvider);
+        if ($existingPatient) {
+            $errorMsg = "A patient with the same name and insurance provider already exists.";
+            
+        } else {
+            $patientDB->addPatient($firstName, $lastName, $insuranceProvider);
+        }
     }
 }
 
