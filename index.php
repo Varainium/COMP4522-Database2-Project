@@ -74,9 +74,6 @@ try {
                 <li><a href="views/reports.php">Reports</a></li>
                 <li><a href="views/staff.php">Staff</a></li>
                 <li><a href="views/patients.php">Patients</a></li>
-                <li><a href="billing.html">Billing</a></li>
-                <li><a href="prescriptions.html">Prescriptions</a></li> -->
-                <!-- <li><a href="login.html">Logout</a></li> -->
             </ul>
         </nav>
     </header>

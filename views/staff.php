@@ -17,7 +17,7 @@ try {
             <form method='GET' action='" . $_SERVER['REQUEST_URI'] . "'>";
         $aside .= "<ul>";
         foreach ($allStaff as $row) {
-            $aside .= "<li><button type='submit' name='ref' value='" . htmlspecialchars($row['staff_id']) . "'>" . htmlspecialchars($row['first_name']). " ". htmlspecialchars($row['last_name']) . "</button></li>";
+            $aside .= "<li><button type='submit' name='ref' value='" . htmlspecialchars($row['staff_id']) . "'>" . htmlspecialchars($row['first_name']) . " " . htmlspecialchars($row['last_name']) . "</button></li>";
         }
         $aside .= "</ul>";
         $aside .= "</form>";
@@ -71,12 +71,11 @@ try {
         <h1>Wellness Clinic</h1>
         <nav>
             <ul>
-                <li><a href="../index.php">Dashboard</a></li>
-                <li><a href="schedule.php">Schedules</a></li>
-                <li><a href="patients.php">Patients</a></li>
-                <li><a href="billing.html">Billing</a></li>
-                <li><a href="prescriptions.html">Prescriptions</a></li>
-                <li><a href="login.html">Logout</a></li>
+                <li><a href="index.php">Home</a></li>
+                <li><a href="views/schedule.php">Schedules</a></li>
+                <li><a href="views/reports.php">Reports</a></li>
+                <li><a href="views/staff.php">Staff</a></li>
+                <li><a href="views/patients.php">Patients</a></li>
             </ul>
         </nav>
     </header>

@@ -55,11 +55,12 @@ if (!in_array('No Provider', $insuranceProviders)) {
     <header>
         <h1>Wellness Clinic</h1>
         <nav>
-            <ul>
-                <li><a href="../index.php">Dashboard</a></li>
-                <li><a href="schedule.php">Schedules</a></li>
-                <li><a href="patients.php">Patients</a></li>
-                <li><a href="prescriptions.html">Prescriptions</a></li>
+        <ul>
+                <li><a href="index.php">Home</a></li>
+                <li><a href="views/schedule.php">Schedules</a></li>
+                <li><a href="views/reports.php">Reports</a></li>
+                <li><a href="views/staff.php">Staff</a></li>
+                <li><a href="views/patients.php">Patients</a></li>
             </ul>
         </nav>
     </header>
