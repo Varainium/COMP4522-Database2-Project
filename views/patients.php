@@ -24,7 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $existingPatient = $patientDB->findPatient($firstName, $lastName, $insuranceProvider);
         if ($existingPatient) {
             $errorMsg = "A patient with the same name already exists.";
-            
         } else {
             $patientDB->addPatient($firstName, $lastName, $insuranceProvider);
         }
@@ -34,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $patients = $patientDB->getAll();
 
 // Extract unique insurance providers and filter out empty values
-$insuranceProviders = array_filter(array_unique(array_column($patients, 'insurance_provider')), function($provider) {
+$insuranceProviders = array_filter(array_unique(array_column($patients, 'insurance_provider')), function ($provider) {
     return !empty($provider);
 });
 
@@ -45,22 +44,24 @@ if (!in_array('No Provider', $insuranceProviders)) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient Management</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <header>
         <h1>Wellness Clinic</h1>
         <nav>
-        <ul>
-                <li><a href="index.php">Home</a></li>
-                <li><a href="views/schedule.php">Schedules</a></li>
-                <li><a href="views/reports.php">Reports</a></li>
-                <li><a href="views/staff.php">Staff</a></li>
-                <li><a href="views/patients.php">Patients</a></li>
+            <ul>
+                <li><a href="<?php echo BASE_URL; ?>/index.php">Home</a></li>
+                <li><a href="<?php echo BASE_URL; ?>/views/schedule.php">Schedules</a></li>
+                <li><a href="<?php echo BASE_URL; ?>/views/reports.php">Reports</a></li>
+                <li><a href="<?php echo BASE_URL; ?>/views/staff.php">Staff</a></li>
+                <li><a href="<?php echo BASE_URL; ?>/views/patients.php">Patients</a></li>
             </ul>
         </nav>
     </header>
@@ -81,17 +82,17 @@ if (!in_array('No Provider', $insuranceProviders)) {
             <form method="POST">
                 <label>First Name:</label>
                 <input type="text" name="first_name" required>
-                
+
                 <label>Last Name:</label>
                 <input type="text" name="last_name" required>
-                
+
                 <label>Insurance Provider:</label>
                 <select name="insurance_provider" required>
                     <?php foreach ($insuranceProviders as $provider): ?>
                         <option value="<?= htmlspecialchars($provider) ?>"><?= htmlspecialchars($provider) ?></option>
                     <?php endforeach; ?>
                 </select>
-                
+
                 <button type="submit" name="add_patient">Submit</button>
                 <button type="reset">Clear</button>
             </form>
@@ -144,4 +145,5 @@ if (!in_array('No Provider', $insuranceProviders)) {
         <p>&copy; Wellness Clinic Project</p>
     </footer>
 </body>
+
 </html>
