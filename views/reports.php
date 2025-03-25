@@ -4,54 +4,80 @@ require_once "../includes/config.inc.php";
 require_once "../includes/db-classes.inc.php";
 
 try {
-    // Connect and retrieve data from StaffDB
     $conn = DatabaseHelper::createConnection(DBCONNSTRING);
-    $staffGateway = new StaffDB($conn);
+    $reports = new ReportsDB($conn);
 
-    // Markup for aside content
-    $allStaff = $staffGateway->getAll();
-    $aside = "";
-    if ($allStaff) {
-        $aside .= "<!-- All staff container -->
-            <h2>Select a Staff</h2>
-            <form method='GET' action='" . $_SERVER['REQUEST_URI'] . "'>";
-        $aside .= "<ul>";
-        foreach ($allStaff as $row) {
-            $aside .= "<li><button type='submit' name='ref' value='" . htmlspecialchars($row['staff_id']) . "'>" . htmlspecialchars($row['first_name']) . " " . htmlspecialchars($row['last_name']) . "</button></li>";
-        }
-        $aside .= "</ul>";
-        $aside .= "</form>";
+    $activityReport = $reports->getMonthlyActivityReport();
+    $statementReport = $reports->getPatientMonthlyStatement();
 
-        // Markup for main content
-        $main = "";
-        // Retrieve staff details
-        if (isset($_GET['ref']) && !empty($_GET['ref'])) {
-            $staff = $staffGateway->getStaff($_GET['ref']);
+    $main = "";
 
-            // Grab element values and set them in variables
-            $staffName = htmlspecialchars($staff['first_name'] . " " . $staff['last_name']);
-            $department = htmlspecialchars($staff['department']);
-            $phone = htmlspecialchars($staff['phone']);
+    // 📊 Monthly Activity Report Table
+    $main .= "<h2 style='text-align:center;'>Monthly Activity Report</h2>";
+    $main .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 90%;'>
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Patient Visits</th>
+                <th>Deliveries</th>
+                <th>Lab Tests</th>
+                <th>Recoveries</th>
+                <th>Avg Visit Duration (min)</th>
+            </tr>
+        </thead><tbody>";
 
-            // Output the staff information
-            $main .=
-                "<!-- Staff information -->
-                <section class='info'>
-                    <h2>$staffName</h2>
-                    <div class='grid'>
-                        <p><strong>Department: </strong>$department</p>
-                        <p><strong>Phone: </strong>$phone</p>
-                    </div>
-                </section>";
+    if (!empty($activityReport)) {
+        foreach ($activityReport as $row) {
+            $main .= "<tr>
+                <td>" . htmlspecialchars($row['month_year']) . "</td>
+                <td>" . $row['total_patient_visits'] . "</td>
+                <td>" . $row['total_deliveries'] . "</td>
+                <td>" . $row['total_lab_tests'] . "</td>
+                <td>" . $row['total_recoveries'] . "</td>
+                <td>" . ($row['avg_visit_duration'] ?? 'N/A') . "</td>
+            </tr>";
         }
     } else {
-        $aside .= "No data to retrieve. Please reconfigure connection to database.";
-        $main .= "No data to retrieve. Please reconfigure connection to database.";
+        $main .= "<tr><td colspan='6' style='text-align:center;'>No activity data available.</td></tr>";
     }
-} catch (Exception $e) {
-    die($e->getMessage());
-}
 
+    $main .= "</tbody></table>";
+
+    // 💳 Patient Monthly Statement Table
+    $main .= "<h2 style='text-align:center; margin-top: 40px;'>Patient Monthly Statement</h2>";
+    $main .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 90%;'>
+        <thead>
+            <tr>
+                <th>Patient ID</th>
+                <th>Name</th>
+                <th>Statement ID</th>
+                <th>Statement Date</th>
+                <th>Total Fee</th>
+                <th>Paid</th>
+                <th>Outstanding Balance</th>
+            </tr>
+        </thead><tbody>";
+
+    if (!empty($statementReport)) {
+        foreach ($statementReport as $row) {
+            $main .= "<tr>
+                <td>" . $row['patient_id'] . "</td>
+                <td>" . htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) . "</td>
+                <td>" . $row['statement_id'] . "</td>
+                <td>" . $row['statement_date'] . "</td>
+                <td>$" . number_format($row['total_fee'], 2) . "</td>
+                <td>$" . number_format($row['total_paid'], 2) . "</td>
+                <td>$" . number_format($row['outstanding_balance'], 2) . "</td>
+            </tr>";
+        }
+    } else {
+        $main .= "<tr><td colspan='7' style='text-align:center;'>No statements available.</td></tr>";
+    }
+
+    $main .= "</tbody></table>";
+} catch (Exception $e) {
+    $main = "<p style='color:red; text-align:center;'>Error generating reports: " . htmlspecialchars($e->getMessage()) . "</p>";
+}
 ?>
 
 <!DOCTYPE html>
@@ -80,9 +106,6 @@ try {
     <main>
         <h2>Welcome to the Wellness Clinic Project</h2>
     </main>
-    <aside>
-        <?php echo $aside; ?>
-    </aside>
     <div class="main">
         <?php echo $main; ?>
     </div>

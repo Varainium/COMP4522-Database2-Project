@@ -100,7 +100,7 @@ class PatientDB
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($insurance_provider, $id));
         return $statement;
     }
-    public function findPatient($first_name, $last_name) 
+    public function findPatient($first_name, $last_name)
     {
         $sql = "SELECT *
                 FROM patient
@@ -137,6 +137,27 @@ class DailyMasterScheduleDB
     {
         $sql = self::$baseSQL . " WHERE date=?";
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, array($id));
+        return $statement->fetchAll();
+    }
+}
+
+class ReportsDB
+{
+    private $pdo;
+    public function __construct($connection)
+    {
+        $this->pdo = $connection;
+    }
+    public function getPatientMonthlyStatement()
+    {
+        $sql = "SELECT * FROM patient_monthly_statement";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
+        return $statement->fetchAll();
+    }
+    public function getMonthlyActivityReport()
+    {
+        $sql = "SELECT * FROM monthly_activity_report";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
         return $statement->fetchAll();
     }
 }
