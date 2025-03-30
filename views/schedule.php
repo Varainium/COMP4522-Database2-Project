@@ -3,72 +3,83 @@
 require_once "../includes/config.inc.php";
 require_once "../includes/db-classes.inc.php";
 
-try {
-    // Connect and retrieve data from DailyMasterScheduleDB
-    $conn = DatabaseHelper::createConnection(DBCONNSTRING);
-    $dmsGateway = new DailyMasterScheduleDB($conn);
+$conn = DatabaseHelper::createConnection(DBCONNSTRING);
+$dmsGateway = new DailyMasterScheduleDB($conn);
 
-    // Get all schedules
-    $allSchedules = $dmsGateway->getAll();
+$message = "";
+$allSchedules = $dmsGateway->getAll();
 
-    // Check if $allSchedules is valid before using it
-    if (!is_array($allSchedules) || empty($allSchedules)) {
-        throw new Exception("No schedules available in the database.");
+// Store unique dates
+$dates = [];
+foreach ($allSchedules as $row) {
+    if (!in_array($row['date'], $dates)) {
+        $dates[] = $row['date'];
     }
-
-    // Markup for aside content
-    $aside = "<h2>Select a Schedule</h2><form method='GET' action='" . $_SERVER['PHP_SELF'] . "'>";
-    $aside .= "<ul>";
-
-    // Store unique dates
-    $dates = [];
-    foreach ($allSchedules as $row) {
-        if (!in_array($row['date'], $dates)) {
-            $dates[] = $row['date'];
-            $aside .= "<li><button type='submit' name='ref' value='" . htmlspecialchars($row['date']) . "'>" . htmlspecialchars($row['date']) . "</button></li>";
-        }
-    }
-    $aside .= "</ul></form>";
-
-    // Markup for main content
-    $main = "";
-    if (isset($_GET['ref']) && !empty($_GET['ref'])) {
-        $selectedDate = $_GET['ref'];
-        $schedules = $dmsGateway->getDailyMasterSchedule($selectedDate);
-
-        if (!empty($schedules) && is_array($schedules)) {
-            $main .= "<section class='info'>
-                        <h2>Schedule Details for " . htmlspecialchars($selectedDate) . "</h2>
-                        <div class='grid'>";
-
-            foreach ($schedules as $schedule) {
-                if (!is_array($schedule)) continue; // ✅ Ensures $schedule is an array before accessing keys
-
-                $staff_id = htmlspecialchars($schedule['staff_id'] ?? "N/A");
-                $first_name = htmlspecialchars($schedule['first_name'] ?? "N/A");
-                $last_name = htmlspecialchars($schedule['last_name'] ?? "N/A");
-                $shift_start_time = htmlspecialchars($schedule['shift_start_time'] ?? "N/A");
-                $shift_end_time = htmlspecialchars($schedule['shift_end_time'] ?? "N/A");
-                $appointment_slots = htmlspecialchars($schedule['appointment_slots'] ?? "0");
-                $walk_in_availability = htmlspecialchars($schedule['walk_in_availability'] ?? "N/A");
-
-                $main .= "<div class='schedule'>
-                            <p><strong>Staff ID: </strong>$staff_id</p>
-                            <p><strong>Staff Name: </strong>$first_name $last_name</p>
-                            <p><strong>Shift Start Time: </strong>$shift_start_time</p>
-                            <p><strong>Shift End Time: </strong>$shift_end_time</p>
-                            <p><strong>Appointment Slots: </strong>$appointment_slots</p>
-                            <p><strong>Walk-in Availability: </strong>$walk_in_availability</p>
-                          </div>";
-            }
-            $main .= "</div></section>";
-        } else {
-            $main .= "<p style='text-align:center;'>No schedules found for this date.</p>";
-        }
-    }
-} catch (Exception $e) {
-    die($e->getMessage());
 }
+
+// Function to generate the Aside Form
+function generateAside($dates)
+{
+    $output = "<h2>Select a Schedule</h2><ul>";
+
+    foreach ($dates as $date) {
+        $output .= "<li><button type='button' onclick=\"openModal('$date')\">" . htmlspecialchars($date) . "</button></li>";
+    }
+
+    $output .= "</ul>";
+    return $output;
+}
+
+// Function to generate the Main Content Table
+function generateMainContent($allSchedules)
+{
+    $output = "<h2>Schedule List</h2><table border='1'><tr><th>Date</th><th>Staff ID</th><th>Staff Name</th><th>Shift Start</th><th>Shift End</th></tr>";
+
+    foreach ($allSchedules as $schedule) {
+        $output .= "<tr>
+            <td>{$schedule['date']}</td>
+            <td>{$schedule['staff_id']}</td>
+            <td>{$schedule['first_name']} {$schedule['last_name']}</td>
+            <td>{$schedule['shift_start_time']}</td>
+            <td>{$schedule['shift_end_time']}</td>
+        </tr>";
+    }
+
+    $output .= "</table>";
+    return $output;
+}
+
+// Function to generate Modal for each date
+function generateModal($date, $dmsGateway)
+{
+    $schedules = $dmsGateway->getDailyMasterSchedule($date);
+
+    $output = "<div class='modal' id='modal_$date'>
+                <div class='modal-content'>
+                    <span onclick=\"closeModal('$date')\" class='close'>&times;</span>
+                    <h2>Schedule Details for $date</h2>";
+
+    if (!empty($schedules)) {
+        $output .= "<div class='grid'>";
+        foreach ($schedules as $schedule) {
+            $output .= "<div class='schedule'>
+                            <p><strong>Staff ID: </strong>{$schedule['staff_id']}</p>
+                            <p><strong>Name: </strong>{$schedule['first_name']} {$schedule['last_name']}</p>
+                            <p><strong>Shift Start: </strong>{$schedule['shift_start_time']}</p>
+                            <p><strong>Shift End: </strong>{$schedule['shift_end_time']}</p>
+                            <p><strong>Appointment Slots: </strong>{$schedule['appointment_slots']}</p>
+                            <p><strong>Walk-in Availability: </strong>{$schedule['walk_in_availability']}</p>
+                         </div>";
+        }
+        $output .= "</div>";
+    } else {
+        $output .= "<p>No schedules found for this date.</p>";
+    }
+
+    $output .= "</div></div>";
+    return $output;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -77,8 +88,43 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nursing Clinic</title>
+    <title>Wellness Clinic - Schedules</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+        }
+
+        .close {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        function openModal(date) {
+            document.getElementById('modal_' + date).style.display = 'block';
+        }
+
+        function closeModal(date) {
+            document.getElementById('modal_' + date).style.display = 'none';
+        }
+    </script>
 </head>
 
 <body>
@@ -94,17 +140,26 @@ try {
             </ul>
         </nav>
     </header>
+
     <main>
-        <h2>Welcome to the Wellness Clinic Project</h2>
+        <section>
+            <?= $message ?>
+            <aside>
+                <?= generateAside($dates) ?>
+            </aside>
+            <div class="main-content">
+                <?= generateMainContent($allSchedules) ?>
+            </div>
+
+            <!-- Generate Modals for All Dates -->
+            <?php foreach ($dates as $date): ?>
+                <?= generateModal($date, $dmsGateway) ?>
+            <?php endforeach; ?>
+        </section>
     </main>
-    <aside>
-        <?php echo $aside; ?>
-    </aside>
-    <div class="main">
-        <?php echo $main; ?>
-    </div>
+
     <footer>
-        <p>&copy; Wellness Clinic Project</p>
+        <p>&copy; <?= date("Y") ?> Wellness Clinic Project</p>
     </footer>
 </body>
 
