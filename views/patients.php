@@ -4,42 +4,103 @@ require_once "../includes/config.inc.php";
 require_once "../includes/db-classes.inc.php";
 
 $conn = DatabaseHelper::createConnection(DBCONNSTRING);
-// Instantiate the PatientDB class using the established connection
 $patientDB = new PatientDB($conn);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['delete_patient'])) {
-        $patientID = $_POST['patient_id'];
-        $patientDB->deletePatient($patientID);
-    } elseif (isset($_POST['update_patient'])) {
-        // $firstName = $_POST['first_name'];
-        // $lastName = $_POST['last_name'];
-        $patientID = $_POST['patient_id'];
-        $insuranceProvider = $_POST['insurance_provider'];
-        $patientDB->updatePatient($patientID, $insuranceProvider);
-    } elseif (isset($_POST['add_patient'])) {
-        $firstName = $_POST['first_name'];
-        $lastName = $_POST['last_name'];
-        $insuranceProvider = $_POST['insurance_provider'];
-        $existingPatient = $patientDB->findPatient($firstName, $lastName, $insuranceProvider);
-        if ($existingPatient) {
-            $errorMsg = "A patient with the same name already exists.";
-        } else {
-            $patientDB->addPatient($firstName, $lastName, $insuranceProvider);
-        }
-    }
+$message = "";
+try {
+    $patients = $patientDB->getAll();
+} catch (Exception $e) {
+    $message = "<p style='color:red;'>{$e->getMessage()}</p>";
 }
 
-$patients = $patientDB->getAll();
+// Generate Add Patient Form
+function generatePatientForm($insuranceProviders)
+{
+    $output = "<section><h3>Add Patient</h3>";
+    $output .= "<form method='POST'>
+                <label>First Name:</label>
+                <input type='text' name='first_name' required>
 
-// Extract unique insurance providers and filter out empty values
+                <label>Last Name:</label>
+                <input type='text' name='last_name' required>
+
+                <label>Insurance Provider:</label>
+                <select name='insurance_provider' required>";
+
+    foreach ($insuranceProviders as $provider) {
+        $output .= "<option value='" . htmlspecialchars($provider) . "'>" . htmlspecialchars($provider) . "</option>";
+    }
+
+    $output .= "</select>
+                <button type='submit' name='add_patient'>Submit</button>
+                <button type='reset'>Clear</button>
+            </form>
+            </section>";
+
+    return $output;
+}
+
+// Generate Patient Table
+function generatePatientTable($patients)
+{
+    $output = "<section><h3>List of Patients</h3>";
+    $output .= "<table border='1'>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Insurance</th>
+                    <th>Actions</th>
+                </tr>";
+
+    foreach ($patients as $patient) {
+        $output .= "<tr>
+                        <td>{$patient['patient_id']}</td>
+                        <td>{$patient['first_name']} {$patient['last_name']}</td>
+                        <td>" . (!empty($patient['insurance_provider']) ? $patient['insurance_provider'] : 'No Provider') . "</td>
+                        <td><button onclick=\"openModal({$patient['patient_id']})\">View/Edit</button></td>
+                    </tr>";
+
+        $output .= generatePatientModal($patient);
+    }
+
+    $output .= "</table></section>";
+    return $output;
+}
+
+// Generate Patient Modal
+function generatePatientModal($patient)
+{
+    $patientId = $patient['patient_id'];
+    $firstName = htmlspecialchars($patient['first_name']);
+    $lastName = htmlspecialchars($patient['last_name']);
+    $insurance = htmlspecialchars($patient['insurance_provider'] ?? 'No Provider');
+
+    return <<<HTML
+    <div id="modal{$patientId}" class="modal">
+        <div class="modal-content">
+            <span onclick="closeModal({$patientId})" style="cursor:pointer;">&times;</span>
+            <h2>Edit Patient</h2>
+            <form method="POST">
+                <input type="hidden" name="patient_id" value="{$patientId}">
+                <label>First Name:</label><input type="text" name="first_name" value="{$firstName}" required><br>
+                <label>Last Name:</label><input type="text" name="last_name" value="{$lastName}" required><br>
+                <label>Insurance Provider:</label><input type="text" name="insurance_provider" value="{$insurance}"><br>
+                <button type="submit" name="update_patient">Update</button>
+                <button type="submit" name="delete_patient">Delete</button>
+            </form>
+        </div>
+    </div>
+HTML;
+}
+
+// Fetch unique insurance providers
 $insuranceProviders = array_filter(array_unique(array_column($patients, 'insurance_provider')), function ($provider) {
     return !empty($provider);
 });
-
 if (!in_array('No Provider', $insuranceProviders)) {
     $insuranceProviders[] = 'No Provider';
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -50,9 +111,43 @@ if (!in_array('No Provider', $insuranceProviders)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient Management</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 50%;
+        }
+    </style>
+    <script>
+        function openModal(id) {
+            document.getElementById('modal' + id).style.display = 'block';
+        }
+
+        function closeModal(id) {
+            document.getElementById('modal' + id).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
 </head>
 
 <body>
+    <?= $message ?>
     <header>
         <h1>Wellness Clinic</h1>
         <nav>
@@ -62,87 +157,18 @@ if (!in_array('No Provider', $insuranceProviders)) {
                 <li><a href="<?php echo BASE_URL; ?>/views/reports.php">Reports</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/views/staff.php">Staff</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/views/patients.php">Patients</a></li>
+                <li><a href="<?php echo BASE_URL; ?>/views/prescription.php">Prescriptions</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <h2>Manage Patients</h2>
-
-        <!-- Error Message Display -->
-        <?php if (!empty($errorMsg)): ?>
-            <div style="color: red; font-weight: bold;">
-                <?= htmlspecialchars($errorMsg) ?>
-            </div>
-        <?php endif; ?>
-
-        <!-- Add Patient Form -->
-        <section>
-            <h3>Add Patient</h3>
-            <form method="POST">
-                <label>First Name:</label>
-                <input type="text" name="first_name" required>
-
-                <label>Last Name:</label>
-                <input type="text" name="last_name" required>
-
-                <label>Insurance Provider:</label>
-                <select name="insurance_provider" required>
-                    <?php foreach ($insuranceProviders as $provider): ?>
-                        <option value="<?= htmlspecialchars($provider) ?>"><?= htmlspecialchars($provider) ?></option>
-                    <?php endforeach; ?>
-                </select>
-
-                <button type="submit" name="add_patient">Submit</button>
-                <button type="reset">Clear</button>
-            </form>
-        </section>
-
-        <!-- Patient List -->
-        <section>
-            <h3>List of Patients</h3>
-            <table border="1">
-                <tr>
-                    <th>ID</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Insurance</th>
-                    <th>Actions</th>
-                </tr>
-                <?php foreach ($patients as $patient): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($patient['patient_id']) ?></td>
-                        <td><?= htmlspecialchars($patient['first_name']) ?></td>
-                        <td><?= htmlspecialchars($patient['last_name']) ?></td>
-                        <td><?= htmlspecialchars(!empty($patient['insurance_provider']) ? $patient['insurance_provider'] : 'No Provider') ?></td>
-                        <td>
-                            <!-- Remove Button -->
-                            <form method="POST" style="display:inline;">
-                                <input type="hidden" name="patient_id" value="<?= $patient['patient_id'] ?>">
-                                <button type="submit" name="delete_patient" onclick="return confirm('Are you sure?');">Remove</button>
-                            </form>
-
-                            <!-- Update Button (Opens Dropdown) -->
-                            <form method="POST" style="display:inline;">
-                                <input type="hidden" name="patient_id" value="<?= $patient['patient_id'] ?>">
-                                <select name="insurance_provider">
-                                    <?php foreach ($insuranceProviders as $provider): ?>
-                                        <option value="<?= htmlspecialchars($provider) ?>" <?= $patient['insurance_provider'] == $provider ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($provider) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <button type="submit" name="update_patient">Update</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </table>
-        </section>
+        <?= generatePatientForm($insuranceProviders); ?>
+        <?= generatePatientTable($patients); ?>
     </main>
 
     <footer>
-        <p>&copy; Wellness Clinic Project</p>
+        <p>&copy; <?php echo date("Y"); ?> Wellness Clinic Project</p>
     </footer>
 </body>
 

@@ -17,10 +17,10 @@ foreach ($allSchedules as $row) {
     }
 }
 
-// Function to generate the Aside Form
+// Function to generate Aside Schedule Dates
 function generateAside($dates)
 {
-    $output = "<h2>Select a Schedule</h2><ul>";
+    $output = "<h2>Select a Date</h2><ul>";
 
     foreach ($dates as $date) {
         $output .= "<li><button type='button' onclick=\"openModal('$date')\">" . htmlspecialchars($date) . "</button></li>";
@@ -30,7 +30,7 @@ function generateAside($dates)
     return $output;
 }
 
-// Function to generate the Main Content Table
+// Function to generate Main Content Table
 function generateMainContent($allSchedules)
 {
     $output = "<h2>Schedule List</h2><table border='1'><tr><th>Date</th><th>Staff ID</th><th>Staff Name</th><th>Shift Start</th><th>Shift End</th></tr>";
@@ -63,13 +63,13 @@ function generateModal($date, $dmsGateway)
         $output .= "<div class='grid'>";
         foreach ($schedules as $schedule) {
             $output .= "<div class='schedule'>
-                            <p><strong>Staff ID: </strong>{$schedule['staff_id']}</p>
-                            <p><strong>Name: </strong>{$schedule['first_name']} {$schedule['last_name']}</p>
-                            <p><strong>Shift Start: </strong>{$schedule['shift_start_time']}</p>
-                            <p><strong>Shift End: </strong>{$schedule['shift_end_time']}</p>
-                            <p><strong>Appointment Slots: </strong>{$schedule['appointment_slots']}</p>
-                            <p><strong>Walk-in Availability: </strong>{$schedule['walk_in_availability']}</p>
-                         </div>";
+                            <p><strong>Staff ID:</strong> {$schedule['staff_id']}</p>
+                            <p><strong>Name:</strong> {$schedule['first_name']} {$schedule['last_name']}</p>
+                            <p><strong>Shift Start:</strong> {$schedule['shift_start_time']}</p>
+                            <p><strong>Shift End:</strong> {$schedule['shift_end_time']}</p>
+                            <p><strong>Appointment Slots:</strong> {$schedule['appointment_slots']}</p>
+                            <p><strong>Walk-in Availability:</strong> " . ($schedule['walk_in_availability'] ? 'Yes' : 'No') . "</p>
+                        </div>";
         }
         $output .= "</div>";
     } else {
@@ -100,6 +100,7 @@ function generateModal($date, $dmsGateway)
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
         }
 
         .modal-content {
@@ -108,6 +109,7 @@ function generateModal($date, $dmsGateway)
             padding: 20px;
             border: 1px solid #888;
             width: 60%;
+            border-radius: 8px;
         }
 
         .close {
@@ -124,6 +126,12 @@ function generateModal($date, $dmsGateway)
         function closeModal(date) {
             document.getElementById('modal_' + date).style.display = 'none';
         }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
     </script>
 </head>
 
@@ -137,25 +145,24 @@ function generateModal($date, $dmsGateway)
                 <li><a href="<?php echo BASE_URL; ?>/views/reports.php">Reports</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/views/staff.php">Staff</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/views/patients.php">Patients</a></li>
+                <li><a href="<?php echo BASE_URL; ?>/views/prescription.php">Prescriptions</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <section>
-            <?= $message ?>
-            <aside>
-                <?= generateAside($dates) ?>
-            </aside>
-            <div class="main-content">
-                <?= generateMainContent($allSchedules) ?>
-            </div>
+        <?= $message ?>
+        <aside>
+            <?= generateAside($dates) ?>
+        </aside>
+        <div class="main-content">
+            <?= generateMainContent($allSchedules) ?>
+        </div>
 
-            <!-- Generate Modals for All Dates -->
-            <?php foreach ($dates as $date): ?>
-                <?= generateModal($date, $dmsGateway) ?>
-            <?php endforeach; ?>
-        </section>
+        <!-- Generate Modals for All Dates -->
+        <?php foreach ($dates as $date): ?>
+            <?= generateModal($date, $dmsGateway) ?>
+        <?php endforeach; ?>
     </main>
 
     <footer>

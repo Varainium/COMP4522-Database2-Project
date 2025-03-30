@@ -5,51 +5,42 @@ class DatabaseHelper
     public static function createConnection($connString)
     {
         $pdo = new PDO($connString);
-        $pdo->setAttribute(
-            PDO::ATTR_ERRMODE,
-            PDO::ERRMODE_EXCEPTION
-        );
-        $pdo->setAttribute(
-            PDO::ATTR_DEFAULT_FETCH_MODE,
-            PDO::FETCH_ASSOC
-        );
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         return $pdo;
     }
-    /*
-Runs the specified SQL query using the passed connection and
-the passed array of parameters (null if none)
-*/
-    public static function runQuery($connection, $sql, $parameters)
+
+    /* Runs the specified SQL query using the passed connection and parameters */
+    public static function runQuery($connection, $sql, $parameters = null)
     {
-        $statement = null;
-        // if there are parameters then do a prepared statement
-        if (isset($parameters)) {
-            // Ensure parameters are in an array
-            if (!is_array($parameters)) {
-                $parameters = is_array($parameters);
+        try {
+            $statement = null;
+            if ($parameters !== null) {
+                if (!is_array($parameters)) $parameters = [$parameters];
+                $statement = $connection->prepare($sql);
+                $executedOk = $statement->execute($parameters);
+                if (!$executedOk) throw new PDOException;
+            } else {
+                $statement = $connection->query($sql);
+                if (!$statement) throw new PDOException;
             }
-            // Use a prepared statement if parameters
-            $statement = $connection->prepare($sql);
-            $executedOk = $statement->execute($parameters);
-            if (! $executedOk) throw new PDOException;
-        } else {
-            // Execute a normal query
-            $statement = $connection->query($sql);
-            if (!$statement) throw new PDOException;
+            return $statement;
+        } catch (PDOException $e) {
+            error_log("Database Error: " . $e->getMessage());
+            return null;
         }
-        return $statement;
     }
 }
 class StaffDB
 {
     private $pdo;
-    private static $baseSQL =
-    "SELECT *
-                FROM staff";
+    private static $baseSQL = "SELECT * FROM staff";
+
     public function __construct($connection)
     {
         $this->pdo = $connection;
     }
+
     public function addStaff($firstName, $lastName, $phone, $email, $department)
     {
         if ($this->checkDuplicateStaff($firstName, $lastName, $phone, $email)) {
@@ -58,50 +49,59 @@ class StaffDB
 
         $sql = "INSERT INTO staff (first_name, last_name, phone, email, department)
                 VALUES (?, ?, ?, ?, ?)";
-
         DatabaseHelper::runQuery($this->pdo, $sql, [$firstName, $lastName, $phone, $email, $department]);
         return $this->pdo->lastInsertId();
     }
 
     public function updateStaff($staffId, $firstName, $lastName, $phone, $email, $department)
     {
-        if ($this->checkDuplicateStaff($firstName, $lastName, $phone, $email)) {
-            throw new Exception("Cannot update to duplicate staff record.");
+        $existingStaff = $this->getStaff($staffId);
+        if (!$existingStaff) {
+            throw new Exception("Staff member not found.");
         }
 
-        $sql = "UPDATE staff 
-                SET first_name = ?, last_name = ?, phone = ?, email = ?, department = ?
-                WHERE staff_id = ?";
+        // Avoid checking for duplicates if updating the same record
+        if ($existingStaff['first_name'] !== $firstName || $existingStaff['last_name'] !== $lastName || $existingStaff['phone'] !== $phone || $existingStaff['email'] !== $email) {
+            if ($this->checkDuplicateStaff($firstName, $lastName, $phone, $email)) {
+                throw new Exception("Cannot update to a duplicate staff record.");
+            }
+        }
 
+        $sql = "UPDATE staff SET first_name = ?, last_name = ?, phone = ?, email = ?, department = ?
+                WHERE staff_id = ?";
         DatabaseHelper::runQuery($this->pdo, $sql, [$firstName, $lastName, $phone, $email, $department, $staffId]);
     }
+
     public function deleteStaff($staffId)
     {
         $sql = "DELETE FROM staff WHERE staff_id = ?";
         DatabaseHelper::runQuery($this->pdo, $sql, [$staffId]);
     }
+
     public function getAll()
     {
-        $sql = self::$baseSQL;
-        $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
+        $statement = DatabaseHelper::runQuery($this->pdo, self::$baseSQL);
         return $statement->fetchAll();
     }
+
     public function getStaff($id)
     {
-        $sql = self::$baseSQL . " WHERE staff_id=?";
+        $sql = self::$baseSQL . " WHERE staff_id = ?";
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$id]);
         return $statement->fetch();
     }
-    // Check for duplicate staff members by name, phone, or email
+
     public function checkDuplicateStaff($firstName, $lastName, $phone, $email)
     {
-        $sql = "SELECT * FROM staff 
-                WHERE (first_name = ? AND last_name = ?)
-                OR phone = ? 
-                OR email = ?";
+        $sql = "SELECT COUNT(*) as count
+            FROM staff 
+            WHERE (first_name = ? AND last_name = ?) 
+            OR phone = ? 
+            OR email = ?";
 
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$firstName, $lastName, $phone, $email]);
-        return $statement->fetch();
+        $result = $statement->fetch();
+        return $result['count'] > 0;
     }
 }
 class PatientDB
@@ -160,25 +160,49 @@ class PatientDB
 class DailyMasterScheduleDB
 {
     private $pdo;
-    private static $baseSQL =
-    "SELECT dms.date, dms.staff_id, s.first_name, s.last_name, dms.shift_start_time, dms.shift_end_time, dms.appointment_slots, dms.walk_in_availability
-        FROM daily_master_schedule AS dms
-        JOIN staff AS s ON dms.staff_id = s.staff_id";
+    private static $baseSQL = "SELECT * FROM daily_master_schedule_view";
+
     public function __construct($connection)
     {
         $this->pdo = $connection;
     }
+
     public function getAll()
     {
         $sql = self::$baseSQL;
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
         return $statement->fetchAll();
     }
-    public function getDailyMasterSchedule($id)
+
+    public function getDailyMasterSchedule($date)
     {
-        $sql = self::$baseSQL . " WHERE date=?";
-        $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$id]);
+        $sql = self::$baseSQL . " WHERE date = ?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$date]);
         return $statement->fetchAll();
+    }
+}
+class PrescriptionDB
+{
+    private $pdo;
+    private static $baseSQL = "SELECT * FROM prescription_view";
+
+    public function __construct($connection)
+    {
+        $this->pdo = $connection;
+    }
+
+    public function getAll()
+    {
+        $sql = self::$baseSQL;
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
+        return $statement->fetchAll();
+    }
+
+    public function getPrescription($id)
+    {
+        $sql = self::$baseSQL . " WHERE prescription_id = ?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$id]);
+        return $statement->fetch();
     }
 }
 
@@ -198,6 +222,12 @@ class ReportsDB
     public function getMonthlyActivityReport()
     {
         $sql = "SELECT * FROM monthly_activity_report";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
+        return $statement->fetchAll();
+    }
+    public function getMonthlyPractitionerReport()
+    {
+        $sql = "SELECT * FROM monthly_practitioner_report";
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
         return $statement->fetchAll();
     }

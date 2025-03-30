@@ -7,12 +7,10 @@ $conn = DatabaseHelper::createConnection(DBCONNSTRING);
 $staffGateway = new StaffDB($conn);
 
 $message = "";
-$allStaff = "";
+$allStaff = $staffGateway->getAll();
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-        // Simple validation
         $firstName = trim($_POST['first_name'] ?? '');
         $lastName = trim($_POST['last_name'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
@@ -52,38 +50,6 @@ try {
 } catch (Exception $e) {
     $message = "<p style='color:red;'>{$e->getMessage()}</p>";
 }
-
-try {
-    // Retrieve all staff members
-    $allStaff = $staffGateway->getAll();
-
-    if ($allStaff) {
-        // Render the Aside Content Form
-        $aside = generateAside();
-
-        // Check if a specific staff member is requested
-        if (isset($_GET['ref']) && !empty($_GET['ref'])) {
-            $staff = $staffGateway->getStaff($_GET['ref']);
-
-            if ($staff) {
-                // Render the Staff Detail Modal
-                $main = generateMainContent([$staff]);
-            } else {
-                $main = "<p style='color:red;'>Staff not found.</p>";
-            }
-        } else {
-            // Render All Staff in the Main Content
-            $main = generateMainContent($allStaff);
-        }
-    } else {
-        $aside = "<p>No data to retrieve. Please reconfigure the connection to the database.</p>";
-        $main = "<p>No data to retrieve. Please reconfigure the connection to the database.</p>";
-    }
-} catch (Exception $e) {
-    // Instead of die(), display the error nicely.
-    $main = "<p style='color:red;'>Error: " . $e->getMessage() . "</p>";
-}
-
 
 // Function to generate the Aside Form
 function generateAside()
@@ -136,7 +102,7 @@ function generateModal($staff)
     return <<<HTML
     <div class="modal" id="staffModal{$staff['staff_id']}">
         <div class="modal-content">
-            <span onclick="closeModal({$staff['staff_id']})" style="cursor:pointer; float:right;">&times;</span>
+            <span onclick="closeModal({$staff['staff_id']})" class="close">&times;</span>
             <h2>Edit Staff: {$staff['first_name']} {$staff['last_name']}</h2>
             <form method="POST">
                 <input type="hidden" name="staff_id" value="{$staff['staff_id']}">
@@ -168,7 +134,6 @@ HTML;
     <title>Staff Management - Wellness Clinic</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Modal Styling */
         .modal {
             display: none;
             position: fixed;
@@ -183,8 +148,13 @@ HTML;
             background-color: white;
             margin: 10% auto;
             padding: 20px;
-            border: 1px solid #888;
-            width: 60%;
+            width: 50%;
+            border-radius: 8px;
+        }
+
+        .close {
+            float: right;
+            cursor: pointer;
         }
     </style>
     <script>
@@ -194,6 +164,11 @@ HTML;
 
         function closeModal(staffId) {
             document.getElementById('staffModal' + staffId).style.display = 'none';
+        }
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
         }
     </script>
 </head>
@@ -209,19 +184,12 @@ HTML;
                 <li><a href="<?php echo BASE_URL; ?>/views/reports.php">Reports</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/views/staff.php">Staff</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/views/patients.php">Patients</a></li>
+                <li><a href="<?php echo BASE_URL; ?>/views/prescription.php">Prescriptions</a></li>
             </ul>
         </nav>
     </header>
-    </main>
-
-    <?= $message ?>
-    <aside>
-        <?= generateAside() ?>
-    </aside>
-    <main>
-        <?= generateMainContent($allStaff) ?>
-    </main>
-
+    <aside><?= generateAside() ?></aside>
+    <main><?= generateMainContent($allStaff) ?></main>
     <footer>
         <p>&copy; <?= date("Y") ?> Wellness Clinic Project</p>
     </footer>
