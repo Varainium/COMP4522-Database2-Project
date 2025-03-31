@@ -58,11 +58,11 @@ try {
         <thead>
             <tr>
                 <th>Month</th>
-                <th>Patient Visits</th>
+                <th>Patient Appointments</th>
                 <th>Deliveries</th>
                 <th>Lab Tests</th>
                 <th>Recoveries</th>
-                <th>Avg Visit Duration (min)</th>
+                <th>Avg Appointment Duration (min)</th>
             </tr>
         </thead><tbody>";
 
@@ -70,11 +70,11 @@ try {
             foreach ($activityReport as $row) {
                 $output .= "<tr>
                     <td>" . htmlspecialchars($row['month_year']) . "</td>
-                    <td>{$row['total_patient_visits']}</td>
+                    <td>{$row['total_appointments']}</td>
                     <td>{$row['total_deliveries']}</td>
                     <td>{$row['total_lab_tests']}</td>
                     <td>{$row['total_recoveries']}</td>
-                    <td>" . ($row['avg_visit_duration'] ?? 'N/A') . "</td>
+                    <td>" . ($row['avg_appointment_duration'] ?? 'N/A') . "</td>
                 </tr>";
             }
         } else {
@@ -154,6 +154,7 @@ try {
                 <li><a href="<?php echo BASE_URL; ?>/views/reports.php">Reports</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/views/staff.php">Staff</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/views/patients.php">Patients</a></li>
+                <li><a href="<?php echo BASE_URL; ?>/views/appointments.php">Appointments</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/views/prescription.php">Prescriptions</a></li>
             </ul>
         </nav>

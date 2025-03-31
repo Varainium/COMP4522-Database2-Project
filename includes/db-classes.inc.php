@@ -41,6 +41,26 @@ class StaffDB
         $this->pdo = $connection;
     }
 
+    public function getAll()
+    {
+        $statement = DatabaseHelper::runQuery($this->pdo, self::$baseSQL);
+        return $statement->fetchAll();
+    }
+
+    public function getStaff($id)
+    {
+        $sql = self::$baseSQL . " WHERE staff_id = ?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$id]);
+        return $statement->fetch();
+    }
+
+    public function getPractitioners()
+    {
+        $sql = self::$baseSQL . " WHERE department = ?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, ['Practitioner']);
+        return $statement->fetchAll();
+    }
+
     public function addStaff($firstName, $lastName, $phone, $email, $department)
     {
         if ($this->checkDuplicateStaff($firstName, $lastName, $phone, $email)) {
@@ -78,19 +98,6 @@ class StaffDB
         DatabaseHelper::runQuery($this->pdo, $sql, [$staffId]);
     }
 
-    public function getAll()
-    {
-        $statement = DatabaseHelper::runQuery($this->pdo, self::$baseSQL);
-        return $statement->fetchAll();
-    }
-
-    public function getStaff($id)
-    {
-        $sql = self::$baseSQL . " WHERE staff_id = ?";
-        $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$id]);
-        return $statement->fetch();
-    }
-
     public function checkDuplicateStaff($firstName, $lastName, $phone, $email)
     {
         $sql = "SELECT COUNT(*) as count
@@ -109,52 +116,115 @@ class PatientDB
     private $pdo;
     private static $baseSQL =
     "SELECT *
-                FROM patient";
+                FROM patients";
+
     public function __construct($connection)
     {
         $this->pdo = $connection;
     }
+
     public function getAll()
     {
         $sql = self::$baseSQL;
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
         return $statement->fetchAll();
     }
+
     public function getPatient($id)
     {
         $sql = self::$baseSQL . " WHERE patient_id=?";
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$id]);
         return $statement->fetch();
     }
+
     public function addPatient($first_name, $last_name, $insurance_provider)
     {
-        $sql = "INSERT INTO patient (first_name, last_name, insurance_provider)
+        // Check for duplication before adding a patient
+        if ($this->checkPatient($first_name, $last_name, $insurance_provider)) {
+            throw new Exception("Patient with the same name and insurance provider already exists.");
+        }
+
+        $sql = "INSERT INTO patients (first_name, last_name, insurance_provider)
                 VALUES (?, ?, ?)";
-        $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$first_name, $last_name, $insurance_provider]);
+        DatabaseHelper::runQuery($this->pdo, $sql, [$first_name, $last_name, !empty($insurance_provider) ? $insurance_provider : null]);
+        return $this->pdo->lastInsertId();
+    }
+
+    public function updatePatient($id, $first_name, $last_name, $insurance_provider)
+    {
+        $sql = "UPDATE patients
+            SET first_name=?, last_name=?, insurance_provider=?
+            WHERE patient_id=?";
+
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$first_name, $last_name, !empty($insurance_provider) ? $insurance_provider : null, $id]);
         return $statement;
     }
-    public function updatePatient($id, $insurance_provider)
-    {
-        $sql = "UPDATE patient
-                SET insurance_provider=?
-                WHERE patient_id=?";
-        $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$insurance_provider, $id]);
-        return $statement;
-    }
-    public function findPatient($first_name, $last_name)
-    {
-        $sql = "SELECT *
-                FROM patient
-                WHERE first_name=? AND last_name=?";
-        $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$first_name, $last_name]);
-        return $statement->fetch();
-    }
+
     public function deletePatient($id)
     {
-        $sql = "DELETE FROM patient
+        $sql = "DELETE FROM patients
                 WHERE patient_id=?";
         $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$id]);
         return $statement;
+    }
+
+    // Check if a patient exists by name and insurance provider to prevent duplication
+    public function checkPatient($first_name, $last_name, $insurance_provider)
+    {
+        $sql = "SELECT * FROM patients
+                WHERE first_name = ? AND last_name = ? AND insurance_provider = ?";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, [$first_name, $last_name, $insurance_provider]);
+        return $statement->fetch();
+    }
+}
+class AppointmentDB
+{
+    private $pdo;
+    public function __construct($connection)
+    {
+        $this->pdo = $connection;
+    }
+
+    public function getAll()
+    {
+        $sql = "SELECT * FROM appointment_view";
+        $statement = DatabaseHelper::runQuery($this->pdo, $sql, null);
+        if (!$statement) {
+            throw new Exception("Failed to fetch appointments. The view 'appointment_view' might be missing or incorrectly defined.");
+        }
+        return $statement->fetchAll();
+    }
+
+    public function addAppointment($patientId, $practitionerId, $appointmentDate, $appointmentTime, $appointmentType, $reason)
+    {
+        $sql = "INSERT INTO appointments (patient_id, practitioner_id, appointment_date, appointment_time, appointment_type, reason)
+                VALUES (?, ?, ?, ?, ?, ?)";
+        DatabaseHelper::runQuery($this->pdo, $sql, [$patientId, $practitionerId, $appointmentDate, $appointmentTime, $appointmentType, $reason]);
+    }
+
+    public function updateAppointment($appointmentId, $patientId, $practitionerId, $appointmentDate, $appointmentTime, $appointmentType, $reason, $status)
+    {
+        $sql = "UPDATE appointments 
+                SET patient_id = ?, practitioner_id = ?, appointment_date = ?, appointment_time = ?, appointment_type = ?, reason = ?, status = ?
+                WHERE appointment_id = ?";
+        DatabaseHelper::runQuery($this->pdo, $sql, [$patientId, $practitionerId, $appointmentDate, $appointmentTime, $appointmentType, $reason, $status, $appointmentId]);
+    }
+
+    public function deleteAppointment($appointmentId)
+    {
+        $sql = "DELETE FROM appointments WHERE appointment_id = ?";
+        DatabaseHelper::runQuery($this->pdo, $sql, [$appointmentId]);
+    }
+
+    // This is the intended stored procedure for generating a billing statement since SQLiteStudio does not support stored procedures.
+    public function generateBillingStatement($appointmentId, $practitionerId, $totalFee, $insurancePaid, $patientDue, $paymentMethod)
+    {
+        $sql = "INSERT INTO billing_statement(appointment_id, practitioner_id, total_fee, insurance_paid, patient_due, payment_method)
+                VALUES (?, ?, ?, ?, ?, ?)";
+
+        $params = [$appointmentId, $practitionerId, $totalFee, $insurancePaid, $patientDue, $paymentMethod];
+
+        DatabaseHelper::runQuery($this->pdo, $sql, $params);
     }
 }
 class DailyMasterScheduleDB
