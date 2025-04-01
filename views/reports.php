@@ -14,10 +14,12 @@ try {
     $main = "";
 
     // Generate Patient Monthly Statement Table
+
     function generatePatientMonthlyStatementTable($statementReport)
     {
         $output = "<h2 style='text-align:center;'>Patient Monthly Statement</h2>";
-        $output .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 90%;'>
+        $output .= "<div class='table-container'>"; // Add table container
+        $output .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 100%;'>
             <thead>
                 <tr>
                     <th>Patient ID</th>
@@ -47,14 +49,17 @@ try {
         }
 
         $output .= "</tbody></table>";
+        $output .= "</div>"; // Close table container
         return $output;
     }
 
     // Generate Monthly Activity Report Table
+
     function generateMonthlyActivityReportTable($activityReport)
     {
         $output = "<h2 style='text-align:center;'>Monthly Activity Report</h2>";
-        $output .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 90%;'>
+        $output .= "<div class='table-container'>"; // Add table container
+        $output .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 100%;'>
         <thead>
             <tr>
                 <th>Month</th>
@@ -82,27 +87,30 @@ try {
         }
 
         $output .= "</tbody></table>";
+        $output .= "</div>"; // Close table container
         return $output;
     }
 
     // Generate Monthly Practitioner Report Table
+
     function generateMonthlyPractitionerReportTable($practitionerReport)
     {
         $output = "<h2 style='text-align:center;'>Monthly Practitioner Report</h2>";
-        $output .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 90%;'>
-        <thead>
-            <tr>
-                <th>Month</th>
-                <th>Practitioner</th>
-                <th>Total Appointments</th>
-                <th>Total Prescriptions</th>
-                <th>Total Lab Tests</th>
-                <th>Total Deliveries</th>
-                <th>Total Recoveries</th>
-                <th>Total Revenue</th>
-                <th>Avg Appointment Duration (min)</th>
-            </tr>
-        </thead><tbody>";
+        $output .= "<div class='table-container'>"; // Add table container
+        $output .= "<table border='1' cellspacing='0' cellpadding='8' style='margin:auto; width: 100%;'>
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Practitioner</th>
+                    <th>Total Appointments</th>
+                    <th>Total Prescriptions</th>
+                    <th>Total Lab Tests</th>
+                    <th>Total Deliveries</th>
+                    <th>Total Recoveries</th>
+                    <th>Total Revenue</th>
+                    <th>Avg Appointment Duration (min)</th>
+                </tr>
+            </thead><tbody>";
 
         if (!empty($practitionerReport)) {
             foreach ($practitionerReport as $row) {
@@ -123,6 +131,7 @@ try {
         }
 
         $output .= "</tbody></table>";
+        $output .= "</div>"; // Close table container
         return $output;
     }
 
@@ -141,7 +150,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports - Wellness Clinic</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../css/styles.css">
 </head>
 
 <body>

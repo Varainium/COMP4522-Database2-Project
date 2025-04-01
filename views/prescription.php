@@ -64,7 +64,7 @@ function generatePrescriptionModal($prescription)
     return <<<HTML
     <div id="modal{$prescriptionId}" class="modal">
         <div class="modal-content">
-            <span onclick="closeModal({$prescriptionId})" style="cursor:pointer;">&times;</span>
+            <span onclick="closeModal({$prescriptionId})" class="close">&times;</span>
             <h2>Prescription Details</h2>
             <p><strong>Prescription ID:</strong> {$prescription['prescription_id']}</p>
             <p><strong>Patient:</strong> {$prescription['patient_first_name']} {$prescription['patient_last_name']}</p>
@@ -87,7 +87,7 @@ HTML;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prescription Management</title>
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../css/styles.css">
     <style>
         .modal {
             display: none;
@@ -96,14 +96,49 @@ HTML;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            overflow: auto;
+            z-index: 1000; /* Ensure the modal is above other elements */
         }
 
         .modal-content {
-            background-color: white;
-            margin: 10% auto;
+            background-color: #ffffff; /* White background for the modal */
+            margin: 5% auto;
             padding: 20px;
             width: 50%;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+            font-family: Arial, sans-serif;
+            text-align: left;
+        }
+
+        .modal-content h2 {
+            color: #0277bd; /* Light blue heading */
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-content p {
+            margin: 10px 0;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .modal-content p strong {
+            color: #555;
+        }
+
+        .close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #ff0000; /* Red color on hover */
         }
     </style>
     <script>

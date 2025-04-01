@@ -20,13 +20,16 @@ foreach ($allSchedules as $row) {
 // Function to generate Aside Schedule Dates
 function generateAside($dates)
 {
-    $output = "<h2>Select a Date</h2><ul>";
+    $output = "<aside>";
+    $output .= "<h2>Select a Date</h2>";
+    $output .= "<ul>";
 
     foreach ($dates as $date) {
         $output .= "<li><button type='button' onclick=\"openModal('$date')\">" . htmlspecialchars($date) . "</button></li>";
     }
 
     $output .= "</ul>";
+    $output .= "</aside>";
     return $output;
 }
 
@@ -89,7 +92,7 @@ function generateModal($date, $dmsGateway)
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wellness Clinic - Schedules</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../css/styles.css">
     <style>
         /* Modal Styling */
         .modal {
@@ -99,23 +102,59 @@ function generateModal($date, $dmsGateway)
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
             overflow: auto;
+            z-index: 1000; /* Ensure the modal is above other elements */
         }
 
         .modal-content {
-            background-color: white;
+            background-color: #ffffff; /* White background for the modal */
             margin: 5% auto;
             padding: 20px;
-            border: 1px solid #888;
             width: 60%;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+            text-align: left;
+            font-family: Arial, sans-serif;
+        }
+
+        .modal-content h2 {
+            color: #0277bd; /* Light blue heading */
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-content p {
+            margin: 10px 0;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .modal-content .schedule {
+            background-color: #e3f2fd; /* Light blue background for schedule details */
+            padding: 15px;
             border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content .schedule p {
+            margin: 5px 0;
+            font-size: 0.95rem;
+            color: #555;
         }
 
         .close {
             float: right;
             font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
             cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #ff0000; /* Red color on hover */
         }
     </style>
     <script>

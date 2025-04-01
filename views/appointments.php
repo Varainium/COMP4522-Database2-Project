@@ -89,7 +89,7 @@ try {
 function generateAppointmentForm($patients, $practitioners)
 {
     $output = "<section><h2>Add Appointment</h2>
-    <form method='POST'>
+    <form method='POST' class='add-appointment'>
         <label>Patient:</label>
         <select name='patient_id' required>";
 
@@ -150,7 +150,7 @@ function generateAppointmentsTable($appointments, $patients, $practitioners)
                 <button onclick=\"openModal('editModal{$appointmentId}')\">Edit</button>
                 <form method='POST' style='display:inline;'>
                     <input type='hidden' name='appointment_id' value='{$appointmentId}'>
-                    <button type='submit' name='delete_appointment'>Delete</button>
+                    <button type='submit' name='delete_appointment' class='delete'>Delete</button>
                 </form>
             </td>
         </tr>";
@@ -211,29 +211,45 @@ function generateEditModal($appointment, $patients, $practitioners)
             <h2>Edit Appointment</h2>
             <form method="POST">
                 <input type="hidden" name="appointment_id" value="{$appointmentId}">
-                
-                <label>Patient:</label>
-                <select name="patient_id" required>{$patientOptions}</select><br>
-                
-                <label>Practitioner:</label>
-                <select name="practitioner_id" required>{$practitionerOptions}</select><br>
-                
-                <label>Date:</label>
-                <input type="date" name="appointment_date" value="{$date}" required><br>
-                
-                <label>Time:</label>
-                <input type="time" name="appointment_time" value="{$time}" required><br>
 
-                <label>Appointment Type:</label>
-                <select name="appointment_type" required>{$typeOptions}</select><br>
+                <div class="form-group">
+                    <label>Patient:</label>
+                    <select name="patient_id" required>{$patientOptions}</select>
+                </div>
 
-                <label>Reason:</label>
-                <textarea name="reason">{$reason}</textarea><br>
+                <div class="form-group">
+                    <label>Practitioner:</label>
+                    <select name="practitioner_id" required>{$practitionerOptions}</select>
+                </div>
 
-                <label>Status:</label>
-                <select name="status" required>{$statusOptions}</select><br>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="appointment_date" value="{$date}" required>
+                </div>
 
-                <button type="submit" name="update_appointment">Update Appointment</button>
+                <div class="form-group">
+                    <label>Time:</label>
+                    <input type="time" name="appointment_time" value="{$time}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Appointment Type:</label>
+                    <select name="appointment_type" required>{$typeOptions}</select>
+                </div>
+
+                <div class="form-group">
+                    <label>Reason:</label>
+                    <textarea name="reason">{$reason}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Status:</label>
+                    <select name="status" required>{$statusOptions}</select>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" name="update_appointment">Update Appointment</button>
+                </div>
             </form>
         </div>
     </div>
@@ -246,20 +262,38 @@ function generateBillingModal($appointmentId, $practitionerId)
     <div id="billModal{$appointmentId}" class="modal">
         <div class="modal-content">
             <span onclick="closeModal('billModal{$appointmentId}')" class="close">&times;</span>
-            <h2>Generate Bill for Appointment ID: {$appointmentId}</h2>
+            <h2>Generate Bill</h2>
             <form method="POST">
                 <input type="hidden" name="appointment_id" value="{$appointmentId}">
                 <input type="hidden" name="practitioner_id" value="{$practitionerId}">
-                <label>Total Fee:</label><input type="number" name="total_fee" step="0.01" required><br>
-                <label>Insurance Paid:</label><input type="number" name="insurance_paid" step="0.01" value="0.00" required><br>
-                <label>Patient Due:</label><input type="number" name="patient_due" step="0.01" required><br>
-                <label>Payment Method:</label>
-                <select name="payment_method" required>
-                    <option value="Out-of-Pocket">Out-of-Pocket</option>
-                    <option value="Insurance">Insurance</option>
-                    <option value="Government">Government</option>
-                </select><br>
-                <button type="submit" name="generate_bill">Generate Bill</button>
+
+                <div class="form-group">
+                    <label>Total Fee:</label>
+                    <input type="number" name="total_fee" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Insurance Paid:</label>
+                    <input type="number" name="insurance_paid" step="0.01" value="0.00" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Patient Due:</label>
+                    <input type="number" name="patient_due" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Method:</label>
+                    <select name="payment_method" required>
+                        <option value="Out-of-Pocket">Out-of-Pocket</option>
+                        <option value="Insurance">Insurance</option>
+                        <option value="Government">Government</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" name="generate_bill">Generate Bill</button>
+                </div>
             </form>
         </div>
     </div>
@@ -275,7 +309,7 @@ HTML;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Appointments</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../css/styles.css">
     <style>
         .modal {
             display: none;
@@ -285,20 +319,161 @@ HTML;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+            z-index: 1000;
         }
 
         .modal-content {
-            background-color: white;
-            margin: 10% auto;
+            background-color: #ffffff;
+            margin: 5% auto;
             padding: 20px;
             width: 50%;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-family: Arial, sans-serif;
+        }
+
+        .modal-content h2 {
+            color: #0277bd;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-content .form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal-content .form-group label {
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .modal-content .form-group input,
+        .modal-content .form-group select,
+        .modal-content .form-group textarea,
+        form.add-appointment input,
+        form.add-appointment select,
+        form.add-appointment textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            text-align: center; /* Center the text inside the input, select, and textarea */
+        }
+
+        .modal-content .form-group textarea {
+            resize: vertical;
+            height: 100px;
+        }
+
+        .modal-content .button-group {
+            text-align: center;
+        }
+
+        .modal-content .button-group button {
+            background-color: #0277bd;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-content .button-group button:hover {
+            background-color: #01579b;
         }
 
         .close {
             float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
             cursor: pointer;
-            font-size: 20px;
+            transition: color 0.3s ease;
         }
+
+        .close:hover {
+            color: #ff0000;
+        }
+
+        form h2 {
+            color: #0277bd;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        form label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+            color: #333;
+        }
+
+        form input,
+        form select,
+        form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        form textarea {
+            resize: vertical;
+            height: 100px;
+        }
+
+        /* Styling for the Add Appointment Form */
+        form.add-appointment {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        form.add-appointment h2 {
+            color: #0277bd;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        form.add-appointment label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+            color: #333;
+        }
+
+        form.add-appointment input,
+        form.add-appointment select,
+        form.add-appointment textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        form.add-appointment textarea {
+            resize: vertical;
+            height: 100px;
+        }
+
     </style>
     <script>
         function openModal(id) {

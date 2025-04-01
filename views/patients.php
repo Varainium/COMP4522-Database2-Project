@@ -72,23 +72,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 /// Generate Add Patient Form
 function generatePatientForm()
 {
-    $output = "<section><h3>Add Patient</h3>";
-    $output .= "<form method='POST'>
-                <label>First Name:</label>
-                <input type='text' name='first_name' required>
+    return <<<HTML
+    <form method="POST">
+        <h3>Add Patient</h3>
+        <label for="first_name">First Name:</label>
+        <input type="text" id="first_name" name="first_name" required>
 
-                <label>Last Name:</label>
-                <input type='text' name='last_name' required>
+        <label for="last_name">Last Name:</label>
+        <input type="text" id="last_name" name="last_name" required>
 
-                <label>Insurance Provider:</label>
-                <input type='text' name='insurance_provider'>
+        <label for="insurance_provider">Insurance Provider:</label>
+        <input type="text" id="insurance_provider" name="insurance_provider">
 
-                <button type='submit' name='add_patient'>Submit</button>
-                <button type='reset'>Clear</button>
-            </form>
-            </section>";
-
-    return $output;
+        <div class="button-group">
+            <button type="submit" name="add_patient">Submit</button>
+            <button type="reset">Clear</button>
+        </div>
+    </form>
+HTML;
 }
 
 // Generate Patient Table
@@ -133,22 +134,30 @@ function generateEditModal($patient)
     return <<<HTML
     <div id="editModal{$patientId}" class="modal">
         <div class="modal-content">
-            <span onclick="closeModal('editModal{$patientId}')" style="cursor:pointer;">&times;</span>
+            <span onclick="closeModal('editModal{$patientId}')" class="close">&times;</span>
             <h2>Edit Patient</h2>
             <form method="POST">
                 <input type="hidden" name="patient_id" value="{$patientId}">
-                
-                <label>First Name:</label>
-                <input type="text" name="first_name" value="{$firstName}" required><br>
-                
-                <label>Last Name:</label>
-                <input type="text" name="last_name" value="{$lastName}" required><br>
-                
-                <label>Insurance Provider:</label>
-                <input type="text" name="insurance_provider" value="{$insuranceProvider}"><br>
 
-                <button type="submit" name="update_patient">Update</button>
-                <button type="submit" name="delete_patient">Delete</button>
+                <div class="form-group">
+                    <label for="first_name_{$patientId}">First Name:</label>
+                    <input type="text" id="first_name_{$patientId}" name="first_name" value="{$firstName}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="last_name_{$patientId}">Last Name:</label>
+                    <input type="text" id="last_name_{$patientId}" name="last_name" value="{$lastName}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="insurance_provider_{$patientId}">Insurance Provider:</label>
+                    <input type="text" id="insurance_provider_{$patientId}" name="insurance_provider" value="{$insuranceProvider}">
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" name="update_patient">Update</button>
+                    <button type="submit" name="delete_patient" style="background-color: red;">Delete</button>
+                </div>
             </form>
         </div>
     </div>
@@ -164,7 +173,7 @@ HTML;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient Management</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../css/styles.css">
     <style>
         .modal {
             display: none;
@@ -181,6 +190,174 @@ HTML;
             margin: 10% auto;
             padding: 20px;
             width: 50%;
+        }
+
+        /* Styling for the Add Patient Form */
+        form {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        form h3 {
+            color: #0277bd;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        form label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+            color: #333;
+        }
+
+        form input,
+        form select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        /* Ensure inputs fit within the form block */
+        form input,
+        form select {
+            width: calc(100% - 20px); /* Adjust width to account for padding */
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box; /* Include padding and border in the element's total width */
+        }
+
+        form button {
+            background-color: #0277bd;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+        }
+
+        form button:hover {
+            background-color: #01579b;
+        }
+
+        form .button-group {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            overflow: auto;
+            z-index: 1000; /* Ensure the modal is above other elements */
+        }
+
+        .modal-content {
+            background-color: #ffffff; /* White background for the modal */
+            margin: 5% auto;
+            padding: 20px;
+            width: 50%;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+            text-align: left;
+            font-family: Arial, sans-serif;
+        }
+
+        .modal-content h2 {
+            color: #0277bd; /* Light blue heading */
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-content form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Add spacing between form elements */
+        }
+
+        .modal-content .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-content .form-group label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .modal-content .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .modal-content .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .modal-content .button-group button {
+            background-color: #0277bd;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-content .button-group button:hover {
+            background-color: #01579b;
+        }
+
+        .modal-content .button-group button[style*="background-color: red"] {
+            background-color: red;
+            color: white;
+        }
+
+        .modal-content .button-group button[style*="background-color: red"]:hover {
+            background-color: darkred;
+        }
+
+        .close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #ff0000; /* Red color on hover */
         }
     </style>
     <script>
