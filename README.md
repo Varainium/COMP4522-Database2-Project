@@ -62,3 +62,9 @@ COMP4522-Database2-Project/
 
 This project was developed as part of the COMP 4522 - Database II course. Assistance was provided by ChatGPT for generating and debugging PHP code, structuring SQL queries, and ensuring the application met the project requirements.
 
+## Authors
+
+- Jayden Eusebio-Wong
+- Justin Serrano
+- Justin Nunez
+- Shaina Anne Garrido
